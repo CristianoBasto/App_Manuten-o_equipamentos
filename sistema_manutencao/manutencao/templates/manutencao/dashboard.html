@@ -1,0 +1,67 @@
+{% extends "manutencao/base.html" %}
+{% block conteudo %}
+
+<h1>📊&#128512; Resumo</h1>
+
+<!-- Cards de resumo -->
+<div class="cards">
+  <div class="card">
+    <div class="numero">{{ total_equipamentos }}</div>
+    <div class="label">Equipamentos cadastrados</div>
+  </div>
+  <div class="card pendente">
+    <div class="numero">{{ pendentes }}</div>
+    <div class="label">Manutenções pendentes</div>
+  </div>
+  <div class="card atrasada">
+    <div class="numero">{{ atrasadas }}</div>
+    <div class="label">Manutenções atrasadas</div>
+  </div>
+  <div class="card concluida">
+    <div class="numero">{{ concluidas }}</div>
+    <div class="label">Manutenções concluídas</div>
+  </div>
+</div>
+
+<!-- Alerta de atrasadas -->
+{% if atrasadas > 0 %}
+<div class="alert-atrasada">
+  ⚠️ Você tem <strong>{{ atrasadas }} manutenção(ões) atrasada(s)</strong>.
+  <a href="{% url 'lista_manutencoes' %}?status=atrasada">Ver agora →</a>
+</div>
+{% endif %}
+
+<!-- Próximas manutenções -->
+<h2>Próximas manutenções</h2>
+{% if proximas %}
+<table>
+  <thead>
+    <tr>
+      <th>Equipamento</th>
+      <th>Tipo</th>
+      <th>Descrição</th>
+      <th>Data prevista</th>
+      <th>Responsável</th>
+      <th>Ação</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in proximas %}
+    <tr>
+      <td>{{ m.equipamento }}</td>
+      <td><span class="badge {{ m.tipo }}">{{ m.get_tipo_display }}</span></td>
+      <td>{{ m.descricao }}</td>
+      <td>{{ m.data_prevista|date:"d/m/Y" }}</td>
+      <td>{{ m.responsavel|default:"—" }}</td>
+      <td>
+        <a href="{% url 'concluir_manutencao' m.pk %}" class="btn btn-success">✔ Concluir</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p style="color:#718096;">Nenhuma manutenção pendente. Tudo em dia! 🎉</p>
+{% endif %}
+
+{% endblock %}

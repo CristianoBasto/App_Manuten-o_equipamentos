@@ -1,0 +1,43 @@
+<!-- ======================================================
+     cadastrar_manutencao.html
+     ====================================================== -->
+{% extends "manutencao/base.html" %}
+{% block conteudo %}
+
+<h1>➕ Nova Manutenção</h1>
+<div class="form-card">
+  <form method="post">
+    {% csrf_token %}
+    <div class="campo">
+      <label>Equipamento</label>
+      <select name="equipamento" required>
+        <option value="">Selecione...</option>
+        {% for eq in equipamentos %}
+        <option value="{{ eq.pk }}">{{ eq.nome }} — {{ eq.localizacao }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="campo">
+      <label>Tipo</label>
+      <select name="tipo" required>
+        <option value="preventiva">Preventiva</option>
+        <option value="corretiva">Corretiva</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label>Descrição</label>
+      <textarea name="descricao" required placeholder="Descreva o serviço a realizar..."></textarea>
+    </div>
+    <div class="campo">
+      <label>Data prevista</label>
+      <input type="date" name="data_prevista" required/>
+    </div>
+    <div class="campo">
+      <label>Responsável</label>
+      <input type="text" name="responsavel" placeholder="Nome do técnico responsável"/>
+    </div>
+    <button type="submit" class="btn btn-primary">Salvar manutenção</button>
+  </form>
+</div>
+
+{% endblock %}
