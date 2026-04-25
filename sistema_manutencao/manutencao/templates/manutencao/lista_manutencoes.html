@@ -6,10 +6,37 @@
 
 <div class="toolbar">
   <h1>📋 Manutenções</h1>
-  <a href="{% url 'exportar_pdf' %}{% if filtro_status %}?status={{ filtro_status }}{% endif %}" class="btn btn-pdf">📄 Exportar PDF</a>
+  <a href="{% url 'exportar_pdf' %}?{% if filtro_mes %}mes={{ filtro_mes }}&{% endif %}{% if filtro_ano %}ano={{ filtro_ano }}&{% endif %}{% if filtro_status %}status={{ filtro_status }}{% endif %}" class="btn btn-pdf">📄 Exportar PDF</a>
 </div>
 
 <form method="get" class="filtros">
+  <div>
+    <label style="font-size:.8rem;font-weight:600;">Mês</label>
+    <select name="mes" onchange="this.form.submit()">
+      <option value="">Todos</option>
+      <option value="1"  {% if filtro_mes == "1"  %}selected{% endif %}>Janeiro</option>
+      <option value="2"  {% if filtro_mes == "2"  %}selected{% endif %}>Fevereiro</option>
+      <option value="3"  {% if filtro_mes == "3"  %}selected{% endif %}>Março</option>
+      <option value="4"  {% if filtro_mes == "4"  %}selected{% endif %}>Abril</option>
+      <option value="5"  {% if filtro_mes == "5"  %}selected{% endif %}>Maio</option>
+      <option value="6"  {% if filtro_mes == "6"  %}selected{% endif %}>Junho</option>
+      <option value="7"  {% if filtro_mes == "7"  %}selected{% endif %}>Julho</option>
+      <option value="8"  {% if filtro_mes == "8"  %}selected{% endif %}>Agosto</option>
+      <option value="9"  {% if filtro_mes == "9"  %}selected{% endif %}>Setembro</option>
+      <option value="10" {% if filtro_mes == "10" %}selected{% endif %}>Outubro</option>
+      <option value="11" {% if filtro_mes == "11" %}selected{% endif %}>Novembro</option>
+      <option value="12" {% if filtro_mes == "12" %}selected{% endif %}>Dezembro</option>
+    </select>
+  </div>
+  <div>
+    <label style="font-size:.8rem;font-weight:600;">Ano</label>
+    <select name="ano" onchange="this.form.submit()">
+      <option value="">Todos</option>
+      {% for a in anos_disponiveis %}
+      <option value="{{ a }}" {% if filtro_ano == a|stringformat:"s" %}selected{% endif %}>{{ a }}</option>
+      {% endfor %}
+    </select>
+  </div>
   <div>
     <label style="font-size:.8rem;font-weight:600;">Status</label>
     <select name="status" onchange="this.form.submit()">
@@ -43,7 +70,7 @@
   <thead>
     <tr>
       <th>Equipamento</th><th>Tipo</th><th>Descrição</th>
-      <th>Data prevista</th><th>Status</th><th>Responsável</th><th>Dias até conclusão</th><th>Ação</th>
+      <th>Registro</th><th>Data prevista</th><th>Status</th><th>Responsável</th><th>Dias até conclusão</th><th>Ação</th>
     </tr>
   </thead>
   <tbody>
@@ -52,6 +79,7 @@
       <td>{{ m.equipamento }}</td>
       <td><span class="badge {{ m.tipo }}">{{ m.get_tipo_display }}</span></td>
       <td>{{ m.descricao }}</td>
+      <td>{{ m.data_registro|date:"d/m/Y" }}</td>
       <td>{{ m.data_prevista|date:"d/m/Y" }}</td>
       <td><span class="badge {{ m.status }}">{{ m.get_status_display }}</span></td>
       <td>{{ m.responsavel|default:"—" }}</td>
@@ -77,3 +105,4 @@
 </table>
 
 {% endblock %}
+

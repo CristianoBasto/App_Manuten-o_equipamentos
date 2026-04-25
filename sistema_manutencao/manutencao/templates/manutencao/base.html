@@ -65,7 +65,7 @@
     <a href="/admin/">Admin</a>
     {% endif %}
     <div class="spacer"></div>
-    <span class="user-info">👤 {{ request.user.username }}</span>
+    <span class="user-info">👤 {{ request.user.username | capfirst }}</span>
     <a href="{% url 'logout' %}" class="btn-logout">Sair</a>
   </nav>
   <div class="container">
