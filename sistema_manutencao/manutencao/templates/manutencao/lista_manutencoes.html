@@ -1,12 +1,14 @@
-<!-- ======================================================
+<!-- ================================================
      lista_manutencoes.html
-     ====================================================== -->
+     ================================================ -->
 {% extends "manutencao/base.html" %}
 {% block conteudo %}
 
-<h1>📋 Manutenções</h1>
+<div class="toolbar">
+  <h1>📋 Manutenções</h1>
+  <a href="{% url 'exportar_pdf' %}{% if filtro_status %}?status={{ filtro_status }}{% endif %}" class="btn btn-pdf">📄 Exportar PDF</a>
+</div>
 
-<!-- Filtros -->
 <form method="get" class="filtros">
   <div>
     <label style="font-size:.8rem;font-weight:600;">Status</label>
@@ -34,19 +36,14 @@
       {% endfor %}
     </select>
   </div>
-  <a href="{% url 'lista_manutencoes' %}" class="btn btn-primary">Limpar filtros</a>
+  <a href="{% url 'lista_manutencoes' %}" class="btn btn-primary">Limpar</a>
 </form>
 
 <table>
   <thead>
     <tr>
-      <th>Equipamento</th>
-      <th>Tipo</th>
-      <th>Descrição</th>
-      <th>Data prevista</th>
-      <th>Status</th>
-      <th>Responsável</th>
-      <th>Ação</th>
+      <th>Equipamento</th><th>Tipo</th><th>Descrição</th>
+      <th>Data prevista</th><th>Status</th><th>Responsável</th><th>Dias até conclusão</th><th>Ação</th>
     </tr>
   </thead>
   <tbody>
@@ -58,6 +55,13 @@
       <td>{{ m.data_prevista|date:"d/m/Y" }}</td>
       <td><span class="badge {{ m.status }}">{{ m.get_status_display }}</span></td>
       <td>{{ m.responsavel|default:"—" }}</td>
+      <td>
+        {% if m.dias_ate_conclusao is not None %}
+          {{ m.dias_ate_conclusao }} dia{{ m.dias_ate_conclusao|pluralize }}
+        {% else %}
+          —
+        {% endif %}
+      </td>
       <td>
         {% if m.status != "concluida" %}
         <a href="{% url 'concluir_manutencao' m.pk %}" class="btn btn-success">✔ Concluir</a>

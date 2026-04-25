@@ -118,7 +118,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 
-# Login
-LOGIN_URL          = "/login/"
-LOGIN_REDIRECT_URL = "/"
+LOGIN_URL           = "/login/"
+LOGIN_REDIRECT_URL  = "/"
 LOGOUT_REDIRECT_URL = "/login/"
+
+# Somente staff pode acessar o admin
+ADMIN_URL = "admin/"

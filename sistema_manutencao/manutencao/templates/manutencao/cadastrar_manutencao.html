@@ -1,6 +1,6 @@
-<!-- ======================================================
+<!-- ================================================
      cadastrar_manutencao.html
-     ====================================================== -->
+     ================================================ -->
 {% extends "manutencao/base.html" %}
 {% block conteudo %}
 
@@ -26,7 +26,7 @@
     </div>
     <div class="campo">
       <label>Descrição</label>
-      <textarea name="descricao" required placeholder="Descreva o serviço a realizar..."></textarea>
+      <textarea name="descricao" required placeholder="Descreva o serviço..."></textarea>
     </div>
     <div class="campo">
       <label>Data prevista</label>
@@ -34,10 +34,12 @@
     </div>
     <div class="campo">
       <label>Responsável</label>
-      <input type="text" name="responsavel" placeholder="Nome do técnico responsável"/>
+      <input type="text" name="responsavel" placeholder="Nome do técnico"/>
     </div>
     <button type="submit" class="btn btn-primary">Salvar manutenção</button>
   </form>
 </div>
 
 {% endblock %}
+
+

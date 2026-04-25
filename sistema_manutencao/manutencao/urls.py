@@ -1,10 +1,31 @@
 from django.urls import path
+from django.contrib import admin
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth import views as auth_views
 from . import views
+ 
+# Bloqueia acesso ao admin para não-administradores
+admin.site.login = user_passes_test(
+    lambda u: u.is_active and u.is_staff,
+    login_url="/login/"
+)(admin.site.login)
+
+
 
 urlpatterns = [
-    path("",                          views.dashboard,              name="dashboard"),
-    path("manutencoes/",              views.lista_manutencoes,      name="lista_manutencoes"),
-    path("manutencoes/cadastrar/",    views.cadastrar_manutencao,   name="cadastrar_manutencao"),
-    path("manutencoes/<int:pk>/concluir/", views.concluir_manutencao, name="concluir_manutencao"),
-    path("equipamentos/cadastrar/",   views.cadastrar_equipamento,  name="cadastrar_equipamento"),
+    # Autenticação
+    path("login/",  auth_views.LoginView.as_view(template_name="manutencao/login.html"), name="login"),
+    path("login/", auth_views.LoginView.as_view(template_name="manutencao/login.html"), name="logout"),
+
+    # path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
+
+    # Páginas principais
+    path("",                               views.dashboard,             name="dashboard"),
+    path("manutencoes/",                   views.lista_manutencoes,     name="lista_manutencoes"),
+    path("manutencoes/cadastrar/",         views.cadastrar_manutencao,  name="cadastrar_manutencao"),
+    path("manutencoes/<int:pk>/concluir/", views.concluir_manutencao,   name="concluir_manutencao"),
+    path("equipamentos/cadastrar/",        views.cadastrar_equipamento, name="cadastrar_equipamento"),
+ 
+    # Relatório PDF
+    path("relatorio/pdf/", views.exportar_pdf, name="exportar_pdf"),
 ]

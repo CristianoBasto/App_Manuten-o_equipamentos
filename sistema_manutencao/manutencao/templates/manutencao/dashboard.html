@@ -1,9 +1,11 @@
 {% extends "manutencao/base.html" %}
 {% block conteudo %}
 
-<h1>📊&#128512; Resumo</h1>
+<div class="toolbar">
+  <h1>📊 Dashboard</h1>
+  <a href="{% url 'exportar_pdf' %}" class="btn btn-pdf">📄 Exportar PDF</a>
+</div>
 
-<!-- Cards de resumo -->
 <div class="cards">
   <div class="card">
     <div class="numero">{{ total_equipamentos }}</div>
@@ -23,7 +25,6 @@
   </div>
 </div>
 
-<!-- Alerta de atrasadas -->
 {% if atrasadas > 0 %}
 <div class="alert-atrasada">
   ⚠️ Você tem <strong>{{ atrasadas }} manutenção(ões) atrasada(s)</strong>.
@@ -31,18 +32,13 @@
 </div>
 {% endif %}
 
-<!-- Próximas manutenções -->
 <h2>Próximas manutenções</h2>
 {% if proximas %}
 <table>
   <thead>
     <tr>
-      <th>Equipamento</th>
-      <th>Tipo</th>
-      <th>Descrição</th>
-      <th>Data prevista</th>
-      <th>Responsável</th>
-      <th>Ação</th>
+      <th>Equipamento</th><th>Tipo</th><th>Descrição</th>
+      <th>Data prevista</th><th>Responsável</th><th>Ação</th>
     </tr>
   </thead>
   <tbody>
@@ -53,9 +49,7 @@
       <td>{{ m.descricao }}</td>
       <td>{{ m.data_prevista|date:"d/m/Y" }}</td>
       <td>{{ m.responsavel|default:"—" }}</td>
-      <td>
-        <a href="{% url 'concluir_manutencao' m.pk %}" class="btn btn-success">✔ Concluir</a>
-      </td>
+      <td><a href="{% url 'concluir_manutencao' m.pk %}" class="btn btn-success">✔ Concluir</a></td>
     </tr>
     {% endfor %}
   </tbody>
