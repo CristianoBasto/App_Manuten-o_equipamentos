@@ -38,6 +38,7 @@ class Manutencao(models.Model):
     data_realizada = models.DateField(null=True, blank=True)
     status         = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pendente")
     responsavel    = models.CharField(max_length=100, blank=True)
+    horimetro      = models.PositiveIntegerField(null=True, blank=True, verbose_name="Horímetro (h)")
 
     def __str__(self):
         return f"{self.equipamento} — {self.tipo} ({self.get_status_display()})"

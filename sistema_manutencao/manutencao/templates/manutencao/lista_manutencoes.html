@@ -70,7 +70,7 @@
   <thead>
     <tr>
       <th>Equipamento</th><th>Tipo</th><th>Descrição</th>
-      <th>Registro</th><th>Data prevista</th><th>Status</th><th>Responsável</th><th>Dias até conclusão</th><th>Ação</th>
+      <th>Registro</th><th>Data prevista</th><th>Horímetro</th><th>Status</th><th>Responsável</th><th>Dias até conclusão</th><th>Ação</th>
     </tr>
   </thead>
   <tbody>
@@ -81,6 +81,7 @@
       <td>{{ m.descricao }}</td>
       <td>{{ m.data_registro|date:"d/m/Y" }}</td>
       <td>{{ m.data_prevista|date:"d/m/Y" }}</td>
+      <td>{% if m.horimetro is not None %}{{ m.horimetro }} h{% else %}—{% endif %}</td>
       <td><span class="badge {{ m.status }}">{{ m.get_status_display }}</span></td>
       <td>{{ m.responsavel|default:"—" }}</td>
       <td>
@@ -105,4 +106,3 @@
 </table>
 
 {% endblock %}
-
