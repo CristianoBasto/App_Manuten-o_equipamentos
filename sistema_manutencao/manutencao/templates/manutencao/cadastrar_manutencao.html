@@ -4,14 +4,44 @@
 {% extends "manutencao/base.html" %}
 {% block conteudo %}
 
+<!-- Select2 CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css" rel="stylesheet"/>
+<style>
+  /* Integra visual do Select2 com o restante do sistema */
+  .select2-container--default .select2-selection--single {
+    height: 38px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    padding: .3rem .5rem;
+    font-size: .9rem;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 26px;
+    color: #1a202c;
+  }
+  .select2-container--default .select2-results__option--highlighted {
+    background-color: #1e3a5f !important;
+  }
+  .select2-search__field {
+    border: 1px solid #cbd5e0 !important;
+    border-radius: 4px !important;
+    padding: .3rem .5rem !important;
+    font-size: .9rem !important;
+  }
+  .select2-container { width: 100% !important; }
+</style>
+
 <h1>➕ Nova Manutenção</h1>
 <div class="form-card">
   <form method="post">
     {% csrf_token %}
     <div class="campo">
       <label>Equipamento</label>
-      <select name="equipamento" required>
-        <option value="">Selecione...</option>
+      <select name="equipamento" id="select-equipamento" required>
+        <option value="">Pesquise o equipamento...</option>
         {% for eq in equipamentos %}
         <option value="{{ eq.pk }}">{{ eq.nome }} — {{ eq.localizacao }}</option>
         {% endfor %}
@@ -40,6 +70,21 @@
   </form>
 </div>
 
-{% endblock %}
+<!-- Select2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+<script>
+  $(document).ready(function () {
+    $("#select-equipamento").select2({
+      placeholder: "Digite para pesquisar...",
+      allowClear: true,
+      language: {
+        noResults: function () { return "Nenhum equipamento encontrado."; },
+        searching:  function () { return "Pesquisando..."; },
+      }
+    });
+  });
+</script>
 
+{% endblock %}
 
