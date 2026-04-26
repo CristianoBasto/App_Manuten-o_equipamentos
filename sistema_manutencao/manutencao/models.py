@@ -60,6 +60,13 @@ class Manutencao(models.Model):
         related_name="manutencoes",
         verbose_name="Oficina"
     )
+    criado_por     = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="manutencoes_criadas",
+        verbose_name="Criado por"
+    )
 
     def __str__(self):
         return f"{self.equipamento} — {self.tipo} ({self.get_status_display()})"

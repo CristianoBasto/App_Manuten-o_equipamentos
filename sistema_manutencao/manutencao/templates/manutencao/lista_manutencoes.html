@@ -96,6 +96,9 @@
       <td>
         {% if m.status != "concluida" %}
         <a href="{% url 'concluir_manutencao' m.pk %}" class="btn btn-success">✔ Concluir</a>
+        {% if m.criado_por == request.user %}
+        <a href="{% url 'editar_manutencao' m.pk %}" class="btn btn-primary" style="margin-left:.3rem;">✏️ Editar</a>
+        {% endif %}
         {% else %}
         <span style="color:#718096;font-size:.85rem;">{{ m.data_realizada|date:"d/m/Y" }}</span>
         {% endif %}

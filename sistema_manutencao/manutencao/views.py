@@ -86,6 +86,7 @@ def cadastrar_manutencao(request):
             horimetro     =request.POST.get("horimetro") or None,
             oficina_id    =request.POST.get("oficina") or None,
             status        ="aguardando_orcamento",
+            criado_por    =request.user,
         )
         return redirect("lista_manutencoes")
 
@@ -118,6 +119,45 @@ def cadastrar_equipamento(request):
 
 
 # ── Exportar PDF ──────────────────────────────────────────────────────────────
+
+@login_required
+def editar_manutencao(request, pk):
+    m = get_object_or_404(Manutencao, pk=pk)
+
+    # Regra 1 — registro concluído não pode ser editado por ninguém
+    if m.status == "concluida":
+        return render(request, "manutencao/sem_permissao.html", {
+            "motivo": "Este registro já foi concluído e não pode mais ser editado."
+        })
+
+    # Regra 2 — somente o criador pode editar
+    if m.criado_por != request.user:
+        return render(request, "manutencao/sem_permissao.html", {
+            "motivo": "Somente o usuário que criou este registro pode editá-lo."
+        })
+
+    if request.method == "POST":
+        m.equipamento_id = request.POST["equipamento"]
+        m.tipo           = request.POST["tipo"]
+        m.descricao      = request.POST["descricao"]
+        m.data_prevista  = request.POST["data_prevista"]
+        m.responsavel    = request.POST.get("responsavel", "")
+        m.horimetro      = request.POST.get("horimetro") or None
+        m.oficina_id     = request.POST.get("oficina") or None
+        m.status         = request.POST["status"]
+        # Se concluindo agora, registra a data
+        if m.status == "concluida" and not m.data_realizada:
+            m.data_realizada = timezone.now().date()
+        m.save()
+        return redirect("lista_manutencoes")
+
+    context = {
+        "m":            m,
+        "equipamentos": Equipamento.objects.all(),
+        "oficinas":     Oficina.objects.all(),
+    }
+    return render(request, "manutencao/editar_manutencao.html", context)
+
 
 @login_required
 def lista_oficinas(request):
