@@ -8,9 +8,16 @@ from .models import Equipamento, Manutencao, Oficina
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
 from reportlab.lib.units import cm
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import io
+import calendar
+import os
 
 
 # ── Views principais ──────────────────────────────────────────────────────────
@@ -221,7 +228,16 @@ def exportar_pdf(request):
     styles = getSampleStyleSheet()
     story  = []
 
-    # ── Título ────────────────────────────────────────────────────────────────
+    # ── Logo ──────────────────────────────────────────────────────────────────
+    from django.apps import apps
+    app_path  = apps.get_app_config("manutencao").path
+    logo_path = os.path.join(app_path, "static", "img", "logo.png")
+
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=5*cm, height=2*cm)
+        logo.hAlign = "LEFT"
+        story.append(logo)
+        story.append(Spacer(1, 0.3*cm))
     titulo_style = ParagraphStyle(
         "titulo", parent=styles["Heading1"],
         fontSize=16, alignment=TA_CENTER, spaceAfter=6,
@@ -233,7 +249,7 @@ def exportar_pdf(request):
         textColor=colors.grey,
     )
 
-    story.append(Paragraph("SisBastos - Controle de Manutenção", titulo_style))
+    story.append(Paragraph("Sistema de Controle de Manutenção", titulo_style))
     story.append(Paragraph(
         f"Relatório de Manutenções — Período: {periodo}",
         ParagraphStyle("periodo", parent=styles["Heading2"], fontSize=12,
@@ -241,18 +257,18 @@ def exportar_pdf(request):
     ))
     story.append(Paragraph(
         f"Gerado em {timezone.now().strftime('%d/%m/%Y às %H:%M')} "
-        f"por {(request.user.get_full_name() or request.user.username).capitalize()}",
+        f"por {request.user.get_full_name() or request.user.username}",
         subtitulo_style
     ))
 
     # ── Cards de resumo ───────────────────────────────────────────────────────
     total      = Manutencao.objects.count()
-    pendentes  = Manutencao.objects.filter(status="aguardando_orcamento").count()
-    atrasadas  = Manutencao.objects.filter(status="orcamento_aprovado").count()
+    pendentes  = Manutencao.objects.filter(status="pendente").count()
+    atrasadas  = Manutencao.objects.filter(status="atrasada").count()
     concluidas = Manutencao.objects.filter(status="concluida").count()
 
     resumo_data = [
-        ["Total", "Aguardando Orçamento", "Orcamento Aprovado", "Concluídas"],
+        ["Total", "Pendentes", "Atrasadas", "Concluídas"],
         [str(total), str(pendentes), str(atrasadas), str(concluidas)],
     ]
     resumo_table = Table(resumo_data, colWidths=[4*cm]*4)
@@ -326,5 +342,139 @@ def exportar_pdf(request):
     t.setStyle(TableStyle(style_cmds))
     story.append(t)
 
-    doc.build(story)
+    # ── Gráfico de % dias parado por equipamento ──────────────────────────────
+    # Só gera se houver filtro de mês e ano E manutenções concluídas com dias calculados
+    if mes and ano:
+        dados_grafico = {}
+        total_dias_mes = calendar.monthrange(int(ano), int(mes))[1]
+
+        for m in manutencoes:
+            if m.dias_ate_conclusao is not None and m.dias_ate_conclusao > 0:
+                nome = m.equipamento.nome
+                dados_grafico[nome] = dados_grafico.get(nome, 0) + m.dias_ate_conclusao
+
+        if dados_grafico:
+            story.append(Spacer(1, 1*cm))
+            story.append(Paragraph("Dias Parado por Equipamento no Mês", styles["Heading2"]))
+            story.append(Spacer(1, 0.3*cm))
+
+            # Calcula % em relação aos dias do mês
+            equipamentos_nomes = list(dados_grafico.keys())
+            dias_valores       = list(dados_grafico.values())
+            percentuais        = [round((d / total_dias_mes) * 100, 1) for d in dias_valores]
+
+            # Cores do gráfico
+            cores_graf = [
+                "#1e3a5f","#2d6a9f","#4a9eca","#68b8e0",
+                "#f6ad55","#fc8181","#68d391","#b794f4",
+            ]
+            cores_graf = (cores_graf * 10)[:len(equipamentos_nomes)]
+
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+            fig.patch.set_facecolor("#f0f4f8")
+
+            # Gráfico de pizza
+            wedges, texts, autotexts = ax1.pie(
+                dias_valores,
+                labels=None,
+                autopct="%1.1f%%",
+                colors=cores_graf,
+                startangle=90,
+                wedgeprops={"edgecolor": "white", "linewidth": 1.5},
+            )
+            for at in autotexts:
+                at.set_fontsize(9)
+                at.set_color("white")
+                at.set_fontweight("bold")
+
+            ax1.set_title(
+                f"Proporção de dias parados\n({MESES_PT.get(mes, mes)}/{ano})",
+                fontsize=11, fontweight="bold", color="#1e3a5f", pad=12
+            )
+
+            # Legenda do pizza
+            patches = [
+                mpatches.Patch(color=cores_graf[i], label=f"{equipamentos_nomes[i]} ({dias_valores[i]}d)")
+                for i in range(len(equipamentos_nomes))
+            ]
+            ax1.legend(handles=patches, loc="lower center",
+                       bbox_to_anchor=(0.5, -0.18), ncol=2, fontsize=8,
+                       framealpha=0.8)
+
+            # Gráfico de barras — % dos dias do mês
+            bars = ax2.barh(equipamentos_nomes, percentuais, color=cores_graf, edgecolor="white")
+            ax2.set_xlabel("% dos dias do mês", fontsize=9, color="#4a5568")
+            ax2.set_title(
+                f"% de dias parados sobre {total_dias_mes} dias do mês",
+                fontsize=11, fontweight="bold", color="#1e3a5f", pad=12
+            )
+            ax2.set_xlim(0, max(percentuais) * 1.25)
+            ax2.set_facecolor("#f7fafc")
+            ax2.tick_params(labelsize=9)
+            ax2.spines["top"].set_visible(False)
+            ax2.spines["right"].set_visible(False)
+
+            for bar, pct in zip(bars, percentuais):
+                ax2.text(
+                    bar.get_width() + 0.3, bar.get_y() + bar.get_height() / 2,
+                    f"{pct}%", va="center", fontsize=9,
+                    color="#1e3a5f", fontweight="bold"
+                )
+
+            plt.tight_layout(pad=2)
+
+            # Salva o gráfico em memória e insere no PDF
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=150, bbox_inches="tight",
+                        facecolor=fig.get_facecolor())
+            plt.close(fig)
+            buf.seek(0)
+
+            img = Image(buf, width=22*cm, height=9*cm)
+            story.append(img)
+
+            # Tabela resumo abaixo do gráfico
+            story.append(Spacer(1, 0.5*cm))
+            resumo_rows = [["Equipamento", "Dias parados", f"% dos {total_dias_mes} dias do mês"]]
+            for i, nome in enumerate(equipamentos_nomes):
+                resumo_rows.append([nome, f"{dias_valores[i]} dia(s)", f"{percentuais[i]}%"])
+
+            resumo_t = Table(resumo_rows, colWidths=[9*cm, 4*cm, 6*cm])
+            resumo_t.setStyle(TableStyle([
+                ("BACKGROUND",    (0,0), (-1,0), colors.HexColor("#1e3a5f")),
+                ("TEXTCOLOR",     (0,0), (-1,0), colors.white),
+                ("FONTNAME",      (0,0), (-1,0), "Helvetica-Bold"),
+                ("FONTSIZE",      (0,0), (-1,-1), 9),
+                ("ALIGN",         (1,0), (-1,-1), "CENTER"),
+                ("BOX",           (0,0), (-1,-1), 0.5, colors.HexColor("#cbd5e0")),
+                ("INNERGRID",     (0,0), (-1,-1), 0.3, colors.HexColor("#e2e8f0")),
+                ("ROWBACKGROUNDS",(0,1), (-1,-1), [colors.white, colors.HexColor("#f7fafc")]),
+                ("TOPPADDING",    (0,0), (-1,-1), 5),
+                ("BOTTOMPADDING", (0,0), (-1,-1), 5),
+            ]))
+            story.append(resumo_t)
+
+    # ── Rodapé em todas as páginas ────────────────────────────────────────────
+    def rodape(canvas, doc):
+        canvas.saveState()
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.HexColor("#718096"))
+
+        # Linha separadora
+        canvas.setStrokeColor(colors.HexColor("#cbd5e0"))
+        canvas.setLineWidth(0.5)
+        canvas.line(2*cm, 1.4*cm, landscape(A4)[0] - 2*cm, 1.4*cm)
+
+        # Texto de contato centralizado
+        texto = "📞 Telefone / WhatsApp: 77 9 8856-3082     ✉ Email: cristhianobastos@gmail.com"
+        canvas.drawCentredString(landscape(A4)[0] / 2, 1.0*cm, texto)
+
+        # Número da página à direita
+        canvas.drawRightString(
+            landscape(A4)[0] - 2*cm, 1.0*cm,
+            f"Página {doc.page}"
+        )
+        canvas.restoreState()
+
+    doc.build(story, onFirstPage=rodape, onLaterPages=rodape)
     return response
