@@ -77,7 +77,13 @@
   <tbody>
     {% for m in manutencoes %}
     <tr>
-      <td>{{ m.equipamento }}</td>
+      <td>
+        {% if m.status != "concluida" and m.criado_por == request.user %}
+          <a href="{% url 'editar_manutencao' m.pk %}" style="color:#1e3a5f;font-weight:600;text-decoration:none;">{{ m.equipamento }}</a>
+        {% else %}
+          {{ m.equipamento }}
+        {% endif %}
+      </td>
       <td><span class="badge {{ m.tipo }}">{{ m.get_tipo_display }}</span></td>
       <td>{{ m.descricao }}</td>
       <td>{{ m.data_registro|date:"d/m/Y" }}</td>
@@ -96,9 +102,6 @@
       <td>
         {% if m.status != "concluida" %}
         <a href="{% url 'concluir_manutencao' m.pk %}" class="btn btn-success">✔ Concluir</a>
-        {% if m.criado_por == request.user %}
-        <a href="{% url 'editar_manutencao' m.pk %}" class="btn btn-primary" style="margin-left:.3rem;">✏️ Editar</a>
-        {% endif %}
         {% else %}
         <span style="color:#718096;font-size:.85rem;">{{ m.data_realizada|date:"d/m/Y" }}</span>
         {% endif %}

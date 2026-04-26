@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from .models import Equipamento, Manutencao, Oficina
 
 # PDF
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -215,7 +215,7 @@ def exportar_pdf(request):
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{nome_arquivo}"'
 
-    doc    = SimpleDocTemplate(response, pagesize=A4,
+    doc    = SimpleDocTemplate(response, pagesize=landscape(A4),
                                leftMargin=2*cm, rightMargin=2*cm,
                                topMargin=2*cm, bottomMargin=2*cm)
     styles = getSampleStyleSheet()
@@ -233,7 +233,7 @@ def exportar_pdf(request):
         textColor=colors.grey,
     )
 
-    story.append(Paragraph("Sistema de Controle de Manutenção", titulo_style))
+    story.append(Paragraph("SisBastos - Controle de Manutenção", titulo_style))
     story.append(Paragraph(
         f"Relatório de Manutenções — Período: {periodo}",
         ParagraphStyle("periodo", parent=styles["Heading2"], fontSize=12,
@@ -241,18 +241,18 @@ def exportar_pdf(request):
     ))
     story.append(Paragraph(
         f"Gerado em {timezone.now().strftime('%d/%m/%Y às %H:%M')} "
-        f"por {request.user.get_full_name() or request.user.username}",
+        f"por {(request.user.get_full_name() or request.user.username).capitalize()}",
         subtitulo_style
     ))
 
     # ── Cards de resumo ───────────────────────────────────────────────────────
     total      = Manutencao.objects.count()
-    pendentes  = Manutencao.objects.filter(status="pendente").count()
-    atrasadas  = Manutencao.objects.filter(status="atrasada").count()
+    pendentes  = Manutencao.objects.filter(status="aguardando_orcamento").count()
+    atrasadas  = Manutencao.objects.filter(status="orcamento_aprovado").count()
     concluidas = Manutencao.objects.filter(status="concluida").count()
 
     resumo_data = [
-        ["Total", "Pendentes", "Atrasadas", "Concluídas"],
+        ["Total", "Aguardando Orçamento", "Orcamento Aprovado", "Concluídas"],
         [str(total), str(pendentes), str(atrasadas), str(concluidas)],
     ]
     resumo_table = Table(resumo_data, colWidths=[4*cm]*4)
@@ -301,7 +301,7 @@ def exportar_pdf(request):
             dias,
         ])
 
-    col_widths = [2.6*cm, 1.7*cm, 3.8*cm, 1.9*cm, 1.9*cm, 1.6*cm, 2.2*cm, 1.7*cm, 2.0*cm, 1.3*cm]
+    col_widths = [3.8*cm, 2.2*cm, 5.5*cm, 2.4*cm, 2.4*cm, 2.0*cm, 3.0*cm, 2.2*cm, 2.8*cm, 1.8*cm]
     t = Table(rows, colWidths=col_widths, repeatRows=1)
 
     style_cmds = [
