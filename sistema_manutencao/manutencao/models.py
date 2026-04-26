@@ -1,6 +1,20 @@
 from django.db import models
 
 
+class Oficina(models.Model):
+    nome        = models.CharField(max_length=100)
+    telefone    = models.CharField(max_length=20, blank=True)
+    responsavel = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name        = "Oficina"
+        verbose_name_plural = "Oficinas"
+        ordering            = ["nome"]
+
+
 class Equipamento(models.Model):
     nome        = models.CharField(max_length=100)
     localizacao = models.CharField(max_length=100)
@@ -39,6 +53,13 @@ class Manutencao(models.Model):
     status         = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pendente")
     responsavel    = models.CharField(max_length=100, blank=True)
     horimetro      = models.PositiveIntegerField(null=True, blank=True, verbose_name="Horímetro (h)")
+    oficina        = models.ForeignKey(
+        Oficina,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="manutencoes",
+        verbose_name="Oficina"
+    )
 
     def __str__(self):
         return f"{self.equipamento} — {self.tipo} ({self.get_status_display()})"

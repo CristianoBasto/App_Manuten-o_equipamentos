@@ -19,12 +19,16 @@ urlpatterns = [
 
     # path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
 
-    # Páginas principais
+ # Páginas principais
     path("",                               views.dashboard,             name="dashboard"),
     path("manutencoes/",                   views.lista_manutencoes,     name="lista_manutencoes"),
     path("manutencoes/cadastrar/",         views.cadastrar_manutencao,  name="cadastrar_manutencao"),
     path("manutencoes/<int:pk>/concluir/", views.concluir_manutencao,   name="concluir_manutencao"),
     path("equipamentos/cadastrar/",        views.cadastrar_equipamento, name="cadastrar_equipamento"),
+ 
+    # Oficinas
+    path("oficinas/",           views.lista_oficinas,    name="lista_oficinas"),
+    path("oficinas/cadastrar/", views.cadastrar_oficina, name="cadastrar_oficina"),
  
     # Relatório PDF
     path("relatorio/pdf/", views.exportar_pdf, name="exportar_pdf"),

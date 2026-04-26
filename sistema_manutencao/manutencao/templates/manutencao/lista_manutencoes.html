@@ -6,7 +6,7 @@
 
 <div class="toolbar">
   <h1>📋 Manutenções</h1>
-  <a href="{% url 'exportar_pdf' %}?{% if filtro_mes %}mes={{ filtro_mes }}&{% endif %}{% if filtro_ano %}ano={{ filtro_ano }}&{% endif %}{% if filtro_status %}status={{ filtro_status }}{% endif %}" class="btn btn-pdf">📄 Exportar PDF</a>
+  <a href="{% url 'exportar_pdf' %}?{% if filtro_mes %}mes={{ filtro_mes }}&{% endif %}{% if filtro_ano %}ano={{ filtro_ano }}&{% endif %}{% if filtro_status %}status={{ filtro_status }}&{% endif %}{% if filtro_oficina %}oficina={{ filtro_oficina }}{% endif %}" class="btn btn-pdf">📄 Exportar PDF</a>
 </div>
 
 <form method="get" class="filtros">
@@ -47,19 +47,20 @@
     </select>
   </div>
   <div>
-    <label style="font-size:.8rem;font-weight:600;">Tipo</label>
-    <select name="tipo" onchange="this.form.submit()">
-      <option value="">Todos</option>
-      <option value="preventiva" {% if filtro_tipo == "preventiva" %}selected{% endif %}>Preventiva</option>
-      <option value="corretiva"  {% if filtro_tipo == "corretiva"  %}selected{% endif %}>Corretiva</option>
-    </select>
-  </div>
-  <div>
     <label style="font-size:.8rem;font-weight:600;">Equipamento</label>
     <select name="equipamento" onchange="this.form.submit()">
       <option value="">Todos</option>
       {% for eq in equipamentos %}
       <option value="{{ eq.pk }}" {% if filtro_eq == eq.pk|stringformat:"s" %}selected{% endif %}>{{ eq.nome }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label style="font-size:.8rem;font-weight:600;">Oficina</label>
+    <select name="oficina" onchange="this.form.submit()">
+      <option value="">Todas</option>
+      {% for of in oficinas %}
+      <option value="{{ of.pk }}" {% if filtro_oficina == of.pk|stringformat:"s" %}selected{% endif %}>{{ of.nome }}</option>
       {% endfor %}
     </select>
   </div>
@@ -70,7 +71,7 @@
   <thead>
     <tr>
       <th>Equipamento</th><th>Tipo</th><th>Descrição</th>
-      <th>Registro</th><th>Data prevista</th><th>Horímetro</th><th>Status</th><th>Responsável</th><th>Dias até conclusão</th><th>Ação</th>
+      <th>Registro</th><th>Data prevista</th><th>Horímetro</th><th>Oficina</th><th>Status</th><th>Responsável</th><th>Dias até conclusão</th><th>Ação</th>
     </tr>
   </thead>
   <tbody>
@@ -82,6 +83,7 @@
       <td>{{ m.data_registro|date:"d/m/Y" }}</td>
       <td>{{ m.data_prevista|date:"d/m/Y" }}</td>
       <td>{% if m.horimetro is not None %}{{ m.horimetro }} h{% else %}—{% endif %}</td>
+      <td>{{ m.oficina.nome|default:"—" }}</td>
       <td><span class="badge {{ m.status }}">{{ m.get_status_display }}</span></td>
       <td>{{ m.responsavel|default:"—" }}</td>
       <td>

@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Equipamento, Manutencao
+from .models import Oficina, Equipamento, Manutencao
+
+
+@admin.register(Oficina)
+class OficinaAdmin(admin.ModelAdmin):
+    list_display  = ("nome", "telefone", "responsavel")
+    search_fields = ("nome", "responsavel")
 
 
 class ManutencaoInline(admin.TabularInline):

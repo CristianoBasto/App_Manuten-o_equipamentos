@@ -70,6 +70,15 @@
       <label>Horímetro (h)</label>
       <input type="number" name="horimetro" min="0" placeholder="Ex: 1250"/>
     </div>
+    <div class="campo">
+      <label>Oficina (opcional)</label>
+      <select name="oficina" id="select-oficina">
+        <option value="">Nenhuma / Serviço interno</option>
+        {% for of in oficinas %}
+        <option value="{{ of.pk }}">{{ of.nome }} {% if of.responsavel %}— {{ of.responsavel }}{% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
     <button type="submit" class="btn btn-primary">Salvar manutenção</button>
   </form>
 </div>
@@ -84,11 +93,18 @@
       allowClear: true,
       language: {
         noResults: function () { return "Nenhum equipamento encontrado."; },
-        searching:  function () { return "Pesquisando..."; },
+        searching: function () { return "Pesquisando..."; },
+      }
+    });
+    $("#select-oficina").select2({
+      placeholder: "Selecione uma oficina...",
+      allowClear: true,
+      language: {
+        noResults: function () { return "Nenhuma oficina encontrada."; },
+        searching: function () { return "Pesquisando..."; },
       }
     });
   });
 </script>
 
 {% endblock %}
-
