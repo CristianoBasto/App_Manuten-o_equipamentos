@@ -41,9 +41,9 @@
     <label style="font-size:.8rem;font-weight:600;">Status</label>
     <select name="status" onchange="this.form.submit()">
       <option value="">Todos</option>
-      <option value="pendente"  {% if filtro_status == "pendente"  %}selected{% endif %}>Pendente</option>
-      <option value="atrasada"  {% if filtro_status == "atrasada"  %}selected{% endif %}>Atrasada</option>
-      <option value="concluida" {% if filtro_status == "concluida" %}selected{% endif %}>Concluída</option>
+      <option value="aguardando_orcamento" {% if filtro_status == "aguardando_orcamento" %}selected{% endif %}>Aguardando Orçamento</option>
+      <option value="orcamento_aprovado"   {% if filtro_status == "orcamento_aprovado"   %}selected{% endif %}>Orçamento Aprovado</option>
+      <option value="concluida"            {% if filtro_status == "concluida"            %}selected{% endif %}>Concluída</option>
     </select>
   </div>
   <div>
@@ -102,7 +102,7 @@
       </td>
     </tr>
     {% empty %}
-    <tr><td colspan="7" style="text-align:center;color:#718096;padding:2rem;">Nenhuma manutenção encontrada.</td></tr>
+    <tr><td colspan="11" style="text-align:center;color:#718096;padding:2rem;">Nenhuma manutenção encontrada.</td></tr>
     {% endfor %}
   </tbody>
 </table>

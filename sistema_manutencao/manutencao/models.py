@@ -35,9 +35,9 @@ class Manutencao(models.Model):
         ("corretiva",  "Corretiva"),
     ]
     STATUS_CHOICES = [
-        ("pendente",  "Pendente"),
-        ("concluida", "Concluída"),
-        ("atrasada",  "Atrasada"),
+        ("concluida",            "Concluída"),
+        ("aguardando_orcamento", "Aguardando Orçamento"),
+        ("orcamento_aprovado",   "Orçamento Aprovado"),
     ]
 
     equipamento    = models.ForeignKey(
@@ -50,7 +50,7 @@ class Manutencao(models.Model):
     data_registro  = models.DateField(auto_now_add=True)  # preenchido automaticamente ao salvar
     data_prevista  = models.DateField()
     data_realizada = models.DateField(null=True, blank=True)
-    status         = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pendente")
+    status         = models.CharField(max_length=30, choices=STATUS_CHOICES, default="aguardando_orcamento")
     responsavel    = models.CharField(max_length=100, blank=True)
     horimetro      = models.PositiveIntegerField(null=True, blank=True, verbose_name="Horímetro (h)")
     oficina        = models.ForeignKey(

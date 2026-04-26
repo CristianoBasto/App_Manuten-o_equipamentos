@@ -11,28 +11,21 @@
     <div class="numero">{{ total_equipamentos }}</div>
     <div class="label">Equipamentos cadastrados</div>
   </div>
-  <div class="card pendente">
-    <div class="numero">{{ pendentes }}</div>
-    <div class="label">Manutenções pendentes</div>
+  <div class="card aguardando">
+    <div class="numero">{{ aguardando_orcamento }}</div>
+    <div class="label">Aguardando Orçamento</div>
   </div>
-  <div class="card atrasada">
-    <div class="numero">{{ atrasadas }}</div>
-    <div class="label">Manutenções atrasadas</div>
+  <div class="card aprovado">
+    <div class="numero">{{ orcamento_aprovado }}</div>
+    <div class="label">Orçamento Aprovado</div>
   </div>
   <div class="card concluida">
     <div class="numero">{{ concluidas }}</div>
-    <div class="label">Manutenções concluídas</div>
+    <div class="label">Concluídas</div>
   </div>
 </div>
 
-{% if atrasadas > 0 %}
-<div class="alert-atrasada">
-  ⚠️ Você tem <strong>{{ atrasadas }} manutenção(ões) atrasada(s)</strong>.
-  <a href="{% url 'lista_manutencoes' %}?status=atrasada">Ver agora →</a>
-</div>
-{% endif %}
-
-<h2>Próximas manutenções</h2>
+<h2>Manutenções aguardando orçamento</h2>
 {% if proximas %}
 <table>
   <thead>
