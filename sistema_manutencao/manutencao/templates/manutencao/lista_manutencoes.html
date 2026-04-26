@@ -113,4 +113,50 @@
   </tbody>
 </table>
 
+<!-- Paginação -->
+{% if pagina.paginator.num_pages > 1 %}
+<div style="display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:1.5rem;flex-wrap:wrap;">
+
+  {% if pagina.has_previous %}
+  <a href="?{{ query_string }}&pagina={{ pagina.previous_page_number }}"
+     style="display:inline-block;padding:.4rem .9rem;border-radius:6px;background:#1e3a5f;color:#fff;text-decoration:none;font-size:.85rem;">
+    ← Anterior
+  </a>
+  {% else %}
+  <span style="display:inline-block;padding:.4rem .9rem;border-radius:6px;background:#e2e8f0;color:#a0aec0;font-size:.85rem;">
+    ← Anterior
+  </span>
+  {% endif %}
+
+  {% for num in pagina.paginator.page_range %}
+    {% if pagina.number == num %}
+    <span style="display:inline-block;padding:.4rem .75rem;border-radius:6px;background:#1e3a5f;color:#fff;font-weight:700;font-size:.85rem;">
+      {{ num }}
+    </span>
+    {% elif num >= pagina.number|add:"-2" and num <= pagina.number|add:"2" %}
+    <a href="?{{ query_string }}&pagina={{ num }}"
+       style="display:inline-block;padding:.4rem .75rem;border-radius:6px;background:#fff;color:#1e3a5f;border:1px solid #cbd5e0;text-decoration:none;font-size:.85rem;">
+      {{ num }}
+    </a>
+    {% endif %}
+  {% endfor %}
+
+  {% if pagina.has_next %}
+  <a href="?{{ query_string }}&pagina={{ pagina.next_page_number }}"
+     style="display:inline-block;padding:.4rem .9rem;border-radius:6px;background:#1e3a5f;color:#fff;text-decoration:none;font-size:.85rem;">
+    Próxima →
+  </a>
+  {% else %}
+  <span style="display:inline-block;padding:.4rem .9rem;border-radius:6px;background:#e2e8f0;color:#a0aec0;font-size:.85rem;">
+    Próxima →
+  </span>
+  {% endif %}
+
+</div>
+<p style="text-align:center;color:#718096;font-size:.8rem;margin-top:.5rem;">
+  Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}
+  — {{ pagina.paginator.count }} registro(s) no total
+</p>
+{% endif %}
+
 {% endblock %}

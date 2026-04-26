@@ -39,6 +39,8 @@ def dashboard(request):
 
 @login_required
 def lista_manutencoes(request):
+    from django.core.paginator import Paginator
+
     manutencoes = Manutencao.objects.select_related("equipamento").all()
 
     status = request.GET.get("status")
@@ -58,7 +60,6 @@ def lista_manutencoes(request):
     if of_id:
         manutencoes = manutencoes.filter(oficina_id=of_id)
 
-    # Anos disponíveis para o filtro
     from django.db.models.functions import ExtractYear
     anos_disponiveis = (
         Manutencao.objects.annotate(ano=ExtractYear("data_registro"))
@@ -67,8 +68,19 @@ def lista_manutencoes(request):
         .order_by("-ano")
     )
 
+    paginator   = Paginator(manutencoes, 7)
+    pagina_num  = request.GET.get("pagina", 1)
+    pagina      = paginator.get_page(pagina_num)
+
+    # Monta query string sem o parâmetro pagina para usar nos links
+    query = request.GET.copy()
+    query.pop("pagina", None)
+    query_string = query.urlencode()
+
     context = {
-        "manutencoes":      manutencoes,
+        "manutencoes":      pagina,
+        "pagina":           pagina,
+        "query_string":     query_string,
         "equipamentos":     Equipamento.objects.all(),
         "oficinas":         Oficina.objects.all(),
         "filtro_status":    status,
@@ -223,43 +235,63 @@ def exportar_pdf(request):
     response["Content-Disposition"] = f'attachment; filename="{nome_arquivo}"'
 
     doc    = SimpleDocTemplate(response, pagesize=landscape(A4),
-                               leftMargin=2*cm, rightMargin=2*cm,
-                               topMargin=2*cm, bottomMargin=2*cm)
+                               leftMargin=1.5*cm, rightMargin=1.5*cm,
+                               topMargin=1*cm, bottomMargin=1.5*cm)
     styles = getSampleStyleSheet()
     story  = []
 
-    # ── Logo ──────────────────────────────────────────────────────────────────
+    # ── Logo + Título lado a lado ─────────────────────────────────────────────
     from django.apps import apps
     app_path  = apps.get_app_config("manutencao").path
     logo_path = os.path.join(app_path, "static", "img", "logo.png")
 
-    if os.path.exists(logo_path):
-        logo = Image(logo_path, width=5*cm, height=2*cm)
-        logo.hAlign = "LEFT"
-        story.append(logo)
-        story.append(Spacer(1, 0.3*cm))
     titulo_style = ParagraphStyle(
         "titulo", parent=styles["Heading1"],
-        fontSize=16, alignment=TA_CENTER, spaceAfter=6,
+        fontSize=15, alignment=TA_CENTER, spaceAfter=4,
         textColor=colors.HexColor("#1e3a5f"),
     )
     subtitulo_style = ParagraphStyle(
         "subtitulo", parent=styles["Normal"],
-        fontSize=9, alignment=TA_CENTER, spaceAfter=20,
+        fontSize=8, alignment=TA_CENTER, spaceAfter=10,
         textColor=colors.grey,
     )
+    periodo_style = ParagraphStyle(
+        "periodo", parent=styles["Heading2"],
+        fontSize=11, alignment=TA_CENTER,
+        textColor=colors.HexColor("#2d4a6e"), spaceAfter=3,
+    )
 
-    story.append(Paragraph("Sistema de Controle de Manutenção", titulo_style))
-    story.append(Paragraph(
-        f"Relatório de Manutenções — Período: {periodo}",
-        ParagraphStyle("periodo", parent=styles["Heading2"], fontSize=12,
-                       alignment=TA_CENTER, textColor=colors.HexColor("#2d4a6e"), spaceAfter=4)
-    ))
-    story.append(Paragraph(
-        f"Gerado em {timezone.now().strftime('%d/%m/%Y às %H:%M')} "
-        f"por {request.user.get_full_name() or request.user.username}",
-        subtitulo_style
-    ))
+    titulo_bloco = [
+        Paragraph("Sistema de Controle de Manutenção", titulo_style),
+        Paragraph(f"Relatório de Manutenções — Período: {periodo}", periodo_style),
+        Paragraph(
+            f"Gerado em {timezone.now().strftime('%d/%m/%Y às %H:%M')} "
+            f"por {request.user.get_full_name() or request.user.username}",
+            subtitulo_style
+        ),
+    ]
+
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=4.5*cm, height=2.5*cm)
+        cabecalho = Table(
+            [[logo, titulo_bloco]],
+            colWidths=[5*cm, None],
+        )
+        cabecalho.setStyle(TableStyle([
+            ("VALIGN",  (0,0), (-1,-1), "MIDDLE"),
+            ("ALIGN",   (0,0), (0,0),   "LEFT"),
+            ("ALIGN",   (1,0), (1,0),   "CENTER"),
+            ("LEFTPADDING",  (0,0), (-1,-1), 0),
+            ("RIGHTPADDING", (0,0), (-1,-1), 0),
+            ("TOPPADDING",   (0,0), (-1,-1), 0),
+            ("BOTTOMPADDING",(0,0), (-1,-1), 0),
+        ]))
+        story.append(cabecalho)
+    else:
+        for item in titulo_bloco:
+            story.append(item)
+
+    story.append(Spacer(1, 0.4*cm))
 
     # ── Cards de resumo ───────────────────────────────────────────────────────
     total      = Manutencao.objects.count()
